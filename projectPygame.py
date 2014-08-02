@@ -17,24 +17,12 @@ def loadImage(listPath):
 
 def listAllImage(path):
 
-	listImageName = []
-	for archivo in listdir(path):
-		if archivo[-2:] != 'py' and archivo[-2:] != 'db':
-			listImageName.append(path+archivo)
-	return listImageName
+	listOfNamesofImages = []
+	for registry in listdir(path):
+		if registry[-2:] != 'py' and registry[-2:] != 'db':
+			listOfNamesofImages.append(path+registry)
+	return listOfNamesofImages
 
-def scannImage(image):
-
-	piexelsList = []
-	counx = 0;
-	for x in range(image.get_width()):
-		count = 0
-		for y in range(image.get_height()):
-			if (255,255,255,255) != image.get_at(( x,y )):
-				count +=1
-		piexelsList.append(count)
-
-	return piexelsList
 
 def getRGBList(pixel):
 	listRGB = []
@@ -44,46 +32,43 @@ def getRGBList(pixel):
 	return listRGB
 
 def setMatrixOfPixels(image):
-	Matriz = []
+	Matrix = []
 	for x in range(image.get_width()):
 		for y in range(image.get_height()):
-			Matriz.append( getRGBList( image.get_at ( (x,y) ) ) )
-	return Matriz
+			Matrix.append( getRGBList( image.get_at ( (x,y) ) ) )
 
-def toInteger(Matriz):
-	currentMatriz = []
-	for lista in Matriz:
-		listaEnteros  = []
-		for valor in lista:
-			listaEnteros.append ( int(valor))
-		currentMatriz.append(listaEnteros)
+	return Matrix
 
-	return currentMatriz
+def toInteger(Matrix):
+	currentMatrix = []
+	for lista in Matrix:
+		IntegerList  = []
+		for value in lista:
+			IntegerList.append ( int(value))
+		currentMatrix.append(IntegerList)
+
+	return currentMatrix
 
 
-def startAlgorithm(Matriz):
-	print "Comenzando Algoritmo  . . ."
+def startAlgorithm(Matrix):
+	cluster = k_means(Matrix, 5)
+	cluster.algoritmo()
+	return makeListColors (toInteger (cluster.getMatrizRGBCentroides())), cluster.getMatrizResultados()
 
-	closter = k_means(Matriz, 5)
-	closter.algoritmo()
-	return makeListColors (toInteger (closter.getMatrizRGBCentroides())), closter.getMatrizResultados()
-
-def makeListColors(MatrizRGB):
+def makeListColors(RGBMatrix):
 	print "Creando Colores  . . ."
-	listaColores = []
-	for lista in MatrizRGB:
-		listaColores.append( tuple(lista) )
-	return listaColores
+	ColorList = []
+	for lista in RGBMatrix:
+		ColorList.append( tuple(lista) )
+	return ColorList
 
-def tratamientoImagen(imagen, listaColores, MatrizPixeles):
-	pass
 
 def graphics():
 	count = 0
-	algorithmFlag = False
+	flagAlgorithm = False
 
-	listaColores = []
-	matrizGrupoPix = []
+	ColorList = []
+	pixelGroup = []
 
 	pygame.display.set_caption('Final Project')
 	listPath = listAllImage("Imagenes/")
@@ -92,15 +77,15 @@ def graphics():
 	backGround = listImages[0]
 	myWindows = pygame.display.set_mode(( backGround.get_size() ))
 
-	listaColores = []
-	color = [0,0,0]
+	ColorList = []
+	currentColor = [0,0,0]
 
 	while True:
 		
-		if algorithmFlag == False:
+		if flagAlgorithm == False:
 			myWindows.blit(backGround,(0,0))
 		else:
-			myWindows.fill( color )
+			myWindows.fill( currentColor )
 		
 		
 		for event in pygame.event.get():
@@ -111,20 +96,20 @@ def graphics():
 				
 				if event.key == pygame.K_RIGHT:
 					count +=1
-					if algorithmFlag == False:
+					if flagAlgorithm == False:
 						if count > len(listImages)-1:
 							count = 0
 						backGround = listImages[count]
 						myWindows = pygame.display.set_mode(( backGround.get_size() ))					
 					else:
-						if count > len(listaColores)-1:
+						if count > len(ColorList)-1:
 							count=0
-						color = listaColores[count]
+						currentColor = ColorList[count]
 						myWindows = pygame.display.set_mode(( 300,300 ))
 
 				elif event.key == pygame.K_LEFT:
 					count -=1
-					if algorithmFlag == False:
+					if flagAlgorithm == False:
 						if count < 0:
 							count = len(listImages)-1
 						backGround = listImages[count]
@@ -132,16 +117,16 @@ def graphics():
 					
 					else:
 						if count<0:
-							count = len(listaColores)-1
-						color = listaColores[count]
+							count = len(ColorList)-1
+						currentColor = ColorList[count]
 						myWindows = pygame.display.set_mode(( 300,300 ))
 
 				elif event.key == pygame.K_SPACE:
-					if algorithmFlag == False:
-						listaColores , matrizGrupoPix= startAlgorithm( setMatrixOfPixels(backGround) )
+					if flagAlgorithm == False:
+						ColorList , pixelGroup= startAlgorithm( setMatrixOfPixels(backGround) )
 						count = 0
-						color = listaColores[count]
-						algorithmFlag = True
+						color = ColorList[count]
+						flagAlgorithm = True
 						myWindows = pygame.display.set_mode(( 300,300 ))
 
 						
