@@ -1,13 +1,11 @@
 # -*- encoding: utf-8 -*-
 import pygame, sys
-
 import numpy as np
 import cv2
-
 from pygame.locals import *
 from os import listdir
-
 from Clases import k_means
+
 
 def loadImage(listPath):
 	imageList = []
@@ -36,7 +34,6 @@ def setMatrixOfPixels(image):
 	for x in range(image.get_width()):
 		for y in range(image.get_height()):
 			Matrix.append( getRGBList( image.get_at ( (x,y) ) ) )
-
 	return Matrix
 
 def toInteger(Matrix):
@@ -46,14 +43,12 @@ def toInteger(Matrix):
 		for value in lista:
 			IntegerList.append ( int(value))
 		currentMatrix.append(IntegerList)
-
 	return currentMatrix
-
 
 def startAlgorithm(Matrix):
 	cluster = k_means(Matrix, 5)
-	cluster.algoritmo()
-	return makeListColors (toInteger (cluster.getMatrizRGBCentroides())), cluster.getMatrizResultados()
+	cluster.algorithm()
+	return makeListColors (toInteger (cluster.getMatrizRGBCentroides())), cluster.getMatrixResults()
 
 def makeListColors(RGBMatrix):
 	print "Creando Colores  . . ."
@@ -64,8 +59,10 @@ def makeListColors(RGBMatrix):
 
 
 def graphics():
+	pygame.init()
 	count = 0
 	flagAlgorithm = False
+	dibujar = True
 
 	ColorList = []
 	pixelGroup = []
@@ -82,10 +79,10 @@ def graphics():
 
 	while True:
 		
-		if flagAlgorithm == False:
-			myWindows.blit(backGround,(0,0))
-		else:
-			myWindows.fill( currentColor )
+		#if flagAlgorithm == False:
+		myWindows.blit(backGround,(0,0))
+		#else:
+		#	myWindows.fill( currentColor )
 		
 		
 		for event in pygame.event.get():
@@ -105,7 +102,8 @@ def graphics():
 						if count > len(ColorList)-1:
 							count=0
 						currentColor = ColorList[count]
-						myWindows = pygame.display.set_mode(( 300,300 ))
+						#myWindows = pygame.display.set_mode(( 300,300 ))
+						dibujar= True
 
 				elif event.key == pygame.K_LEFT:
 					count -=1
@@ -119,20 +117,32 @@ def graphics():
 						if count<0:
 							count = len(ColorList)-1
 						currentColor = ColorList[count]
-						myWindows = pygame.display.set_mode(( 300,300 ))
+						#myWindows = pygame.display.set_mode(( 300,300 ))
+						dibujar= True
 
 				elif event.key == pygame.K_SPACE:
 					if flagAlgorithm == False:
 						ColorList , pixelGroup= startAlgorithm( setMatrixOfPixels(backGround) )
 						count = 0
 						color = ColorList[count]
+						#myWindows = pygame.display.set_mode(( 300,300 ))
 						flagAlgorithm = True
-						myWindows = pygame.display.set_mode(( 300,300 ))
+		
 
+		if flagAlgorithm==True and dibujar == True:
+			print "Comienza"
+			copia = pixelGroup[count]
+			for x in range(0, backGround.get_width()):
+				for y in range(0,backGround.get_height()):
+					if getRGBList( backGround.get_at((x,y)) ) in copia:
+						pygame.draw.circle(backGround, ColorList[count], (x, y),1, 0)
+						pygame.display.update()
 						
+			dibujar= False
 
+			print "Termino\n\n"
+		
 		
 		pygame.display.update()
 
-pygame.init()
 graphics()

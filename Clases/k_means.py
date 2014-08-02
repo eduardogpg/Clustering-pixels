@@ -1,96 +1,67 @@
 from random import randint
 import math
+from centroide import centroide
 
-#Cambiar valores a 1
-#Checar por que siempre da los mismos resultados 
-
-class centroide():
-	def __init__(self, coordenadas):
-		self.coordenadas = coordenadas
-		self.viejasCoordenadas = []
-
-	def promedio(self,lista):
-	
-		for posC in range(0, len(self.coordenadas)):
-			suma = 0.0
-			for pos in range(0,len(lista)):
-				suma = suma + lista[pos][posC]
-			self.coordenadas[posC] = suma / len(lista)
-
-		if self.coordenadas == self.viejasCoordenadas:
-			return True
-		else:
-			self.viejasCoordenadas = self.coordenadas
-			return False
-
-	def getCoordenadas(self):
-		return self.coordenadas
 
 class k_means():
-	def __init__(self, listaIndividuos, numeroClases):
+	def __init__(self, listaIndividuos, numberOfCentroides):
 		self.listaIndividuos = listaIndividuos
+		self.centroidesList = self.setCentroides(numberOfCentroides)
+		self.matrixResults = []
 
-		self.listaCentroides = self.establecerCentroides(numeroClases)
-		self.MatrizResultados = []
-
-	def establecerCentroides(self, numeroClases):
+	def setCentroides(self, numberOfCentroides):
 		listaAux = []
-		for pos in range(0, numeroClases):
-			nuevoCentroide = centroide(self.listaIndividuos[randint(0, len(self.listaIndividuos)-1)])
-			listaAux.append(nuevoCentroide)
+		for pos in range(0, numberOfCentroides):
+			newCentroide = centroide(self.listaIndividuos[randint(0, len(self.listaIndividuos)-1)])
+			listaAux.append(newCentroide)
 		return listaAux
 
-	def algoritmo(self):
-		bandera = False
-		while bandera == False:
+	def algorithm(self):
+		flag = False
+		while flag == False:
 			
-			MatrizResultados = []
-			for pos in range(0, len(self.listaCentroides) ):
-				MatrizResultados.append([])
+			matrixResults = []
+			for pos in range(0, len(self.centroidesList) ):
+				matrixResults.append([])
 
 			
-			MatrizDitancias = []
-			for posCentroide in range(0, len(self.listaCentroides)):
-				centroideActual = self.listaCentroides[posCentroide]
+			distanceMatrix = []
+			for currentCentroide in self.centroidesList:
+				distanceListCentroide = []
 
-				listaDistanciaCentroides = []
-
-				for posIndividuos in range(0, len(self.listaIndividuos)):
-					individuo = self.listaIndividuos[posIndividuos]
-					listaDistanciaCentroides.append ( self.calcularDistancia( centroideActual.getCoordenadas(), individuo ) )
+				for individuo in self.listaIndividuos:
+					distanceListCentroide.append ( self.calculateDistance( currentCentroide.getposition(), individuo ) )
 				
-				MatrizDitancias.append(listaDistanciaCentroides)
+				distanceMatrix.append(distanceListCentroide)
 
 			for posIndividuos in range(0, len(self.listaIndividuos)):
-				listaValores = []
-				for posMa in range(0, len(MatrizDitancias)):
-					listaValores.append(MatrizDitancias[posMa][posIndividuos])
+				valuesList = []
+				for posMa in range(0, len(distanceMatrix)):
+					valuesList.append(distanceMatrix[posMa][posIndividuos])
 
-				pos = self.obtenerPosicionMenor(listaValores)
-				listaAux = MatrizResultados[pos]
+				pos = self.getLessPosition(valuesList)
+				listaAux = matrixResults[pos]
 				listaAux.append(self.listaIndividuos[posIndividuos])
-				MatrizResultados[pos] = listaAux
+				matrixResults[pos] = listaAux
 
 
 			p = True
-			for posCentroide in range(0, len(self.listaCentroides)):
-				centroide = self.listaCentroides[posCentroide]
-				if centroide.promedio(MatrizResultados[posCentroide]) != True:
+			for posCentroide in range(0, len(self.centroidesList)):
+				centroide = self.centroidesList[posCentroide]
+				if centroide.average(matrixResults[posCentroide]) != True:
 					p=False
 
 			if p == True:
-				self.MatrizResultados = MatrizResultados
-				bandera = True
+				self.matrixResults = matrixResults
+				flag = True
 	
-	def calcularDistancia(self, listaUno, listaDos):
+	def calculateDistance(self, listOne, listTwo):
 		distancia = 0
-		for pos in range(0, len(listaUno)):
-			distancia = distancia + ((listaDos[pos] - listaUno[pos])** 2)
-		
+		for pos in range(0, len(listOne)):
+			distancia = distancia + ((listTwo[pos] - listOne[pos])** 2)
 		return math.sqrt( distancia )
 
-
-	def obtenerPosicionMenor(self, lista):
+	def getLessPosition(self, lista):
 		posMenor = 0
 		menor = lista[posMenor]
 		for pos in range(0, len(lista)):
@@ -101,30 +72,12 @@ class k_means():
 
 		return posMenor
 
-	def mostrarResultados(self):
-		print "cluster size : \n"	
-		
-		for lista in self.MatrizResultados:
-			print lista
-			print "\n\n\n\n\n\n\n"
 	
-	def getMatrizResultados(self):
-		return self.MatrizResultados
+	def getMatrixResults(self):
+		return self.matrixResults
 
 	def getMatrizRGBCentroides(self):
 		Matriz = []
-		for centroideA in self.listaCentroides:
-			Matriz.append( centroideA.getCoordenadas() )
+		for centroideA in self.centroidesList:
+			Matriz.append( centroideA.getposition() )
 		return Matriz
-
-	def posMayor(self, lista):
-		posMayor = 0
-		mayor = lista[posMayor]
-
-		for pos in range(0, len(lista)):
-			valor = lista[pos]
-			if valor > mayor:
-				posMayor = pos
-				mayor = valor
-
-		return posMayor
