@@ -8,7 +8,6 @@ class centroide():
 		self.oldPosition = []
 
 	def average(self,pointList):
-	
 		for posC in range(0, len(self.position)):
 			Sum = 0.0
 			for pos in range(0,len(pointList)):

@@ -81,3 +81,6 @@ class k_means():
 		for centroideA in self.centroidesList:
 			Matriz.append( centroideA.getposition() )
 		return Matriz
+
+	def getCentroidesList(self):
+		return self.centroidesList
