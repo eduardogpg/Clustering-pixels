@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 import pygame, sys
 
+import math
 
 import numpy as np
 import cv2
@@ -23,7 +24,6 @@ def listAllImage(path):
 		if registry[-2:] != 'py' and registry[-2:] != 'db':
 			listOfNamesofImages.append(path+registry)
 	return listOfNamesofImages
-
 
 def getRGBList(pixel):
 	listRGB = []
@@ -48,10 +48,38 @@ def toInteger(Matrix):
 		currentMatrix.append(IntegerList)
 	return currentMatrix
 
-def startAlgorithm(Matrix, numeroCentroides):
+def calculateDistance(listOne, listTwo):
+	distancia = 0
+	for pos in range(0, len(listOne)):
+		distancia = distancia + ((listTwo[pos] - listOne[pos])** 2)
+	return math.sqrt( distancia )
+
+
+def getLessPosition(lista):
+	posMenor = 0
+	menor = lista[posMenor]
+	for pos in range(0, len(lista)):
+		valor = lista[pos]
+		if valor < menor:
+			menor = valor
+			posMenor = pos
+	return posMenor
+
+
+def NearestNeighbors(Matrix, listaCentroides):
+	MatrixAux = []
+	for lista in Matrix:
+		listaDistancias = []
+		for centroide in listaCentroides:
+			listaDistancias.append ( calculateDistance(lista, list(centroide)) )
+		MatrixAux.append( getLessPosition(listaDistancias) )
+
+	return MatrixAux
+	
+def startAlgorithmKMeans(Matrix, numeroCentroides):
 	cluster = k_means(Matrix, numeroCentroides)
 	cluster.algorithm()
-	return makeListColors (toInteger (cluster.getMatrizRGBCentroides())), cluster.getMatrixResults()
+	return makeListColors(toInteger (cluster.getMatrizRGBCentroides()))
 
 def makeListColors(RGBMatrix):
 	ColorList = []
@@ -67,31 +95,22 @@ def sumaValores(tupla):
 
 def graphics(numeroCentroides, opcion):
 	pygame.init()
+	
 	count = 0
 	flagAlgorithm = False
 	dibujar = opcion
-	next = False
-
+	
 	ColorList = []
-	pixelGroup = []
+	Matrix = []
 
 	pygame.display.set_caption('Final Project')
-	listPath = listAllImage("Imagenes/")
-	listImages = loadImage( listPath )
+	listImages = loadImage( listAllImage("Imagenes/") )
 
 	backGround = listImages[0]
 	myWindows = pygame.display.set_mode(( backGround.get_size() ))
 
-	ColorList = []
-	
-
 	while True:
-		
-		#if flagAlgorithm == False:
 		myWindows.blit(backGround,(0,0))
-		#else:
-		#	myWindows.fill( currentColor )
-		
 		
 		for event in pygame.event.get():
 			if event.type == QUIT:
@@ -106,42 +125,44 @@ def graphics(numeroCentroides, opcion):
 							count = 0
 						backGround = listImages[count]
 						myWindows = pygame.display.set_mode(( backGround.get_size() ))					
-					else:
-						next=True
+					
 				elif event.key == pygame.K_LEFT:
+					
 					if flagAlgorithm == False:
 						count -=1
 						if count < 0:
 							count = len(listImages)-1
 						backGround = listImages[count]
 						myWindows = pygame.display.set_mode(( backGround.get_size() ))
-					else:
-						next=True	
+					
 					
 				elif event.key == pygame.K_SPACE:
 					if flagAlgorithm == False:
-						ColorList , pixelGroup= startAlgorithm( setMatrixOfPixels(backGround), numeroCentroides )
-						count = 0
-						color = ColorList[count]
-						#myWindows = pygame.display.set_mode(( 300,300 ))
+						print "Comienza el algoritmo de Cluster"
+						MarizPixeles = setMatrixOfPixels(backGround)
+						ColorList = startAlgorithmKMeans( MarizPixeles ,numeroCentroides )
+						
+						if dibujar==True:
+							Matrix = NearestNeighbors( MarizPixeles, ColorList )
 						flagAlgorithm = True
-						print "Algoritmo terminado"
+						print "Termina el algoritmo de Cluster"
 
+						
+						
 		if flagAlgorithm==True:
-			if dibujar==True and next==True:
-				if count < len(ColorList)-1:
-					print "Comienza a colorear : "+str(count)
-					copia = pixelGroup[count]
-					for x in range(0, backGround.get_width()):
-						for y in range(0,backGround.get_height()):
-							if getRGBList( backGround.get_at((x,y)) ) in copia:
-								pygame.draw.circle(backGround, ColorList[count], (x, y),1, 0)
-								pygame.display.update()
+			if dibujar==True:
+				print "Se comienza a dibujar"
+				contadorPersonal = 0
+				for x in range(backGround.get_width()):
+					for y in range(backGround.get_height()):
+						pygame.draw.circle(backGround, ColorList[ Matrix[contadorPersonal] ], (x, y),1, 0)
+						contadorPersonal+=1
+				
+				pygame.display.update()
+				flagAlgorithm = False
+				print "Se Termina "
 			
-					print "Termina\n\n"
-					next=False
-			
-			elif dibujar==False and next==False:
+			else:
 				size = backGround.get_height() / len(ColorList)
 				inicio = 0
 				siguiente = inicio + size
