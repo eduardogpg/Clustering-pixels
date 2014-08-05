@@ -65,7 +65,6 @@ def sumaValores(tupla):
 		suma = suma + valor
 	return suma
 
-
 def graphics(numeroCentroides, opcion):
 	pygame.init()
 	count = 0
@@ -101,9 +100,8 @@ def graphics(numeroCentroides, opcion):
 			elif event.type == pygame.KEYDOWN:
 				
 				if event.key == pygame.K_RIGHT:
-					count +=1
 					if flagAlgorithm == False:
-						
+						count +=1	
 						if count > len(listImages)-1:
 							count = 0
 						backGround = listImages[count]
@@ -111,8 +109,8 @@ def graphics(numeroCentroides, opcion):
 					else:
 						next=True
 				elif event.key == pygame.K_LEFT:
-					count -=1
 					if flagAlgorithm == False:
+						count -=1
 						if count < 0:
 							count = len(listImages)-1
 						backGround = listImages[count]
@@ -132,14 +130,14 @@ def graphics(numeroCentroides, opcion):
 		if flagAlgorithm==True:
 			if dibujar==True and next==True:
 				if count < len(ColorList)-1:
-					print "Comienza a colorear"
+					print "Comienza a colorear : "+str(count)
 					copia = pixelGroup[count]
 					for x in range(0, backGround.get_width()):
 						for y in range(0,backGround.get_height()):
 							if getRGBList( backGround.get_at((x,y)) ) in copia:
 								pygame.draw.circle(backGround, ColorList[count], (x, y),1, 0)
 								pygame.display.update()
-								
+			
 					print "Termina\n\n"
 					next=False
 			
