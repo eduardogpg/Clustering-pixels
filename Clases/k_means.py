@@ -69,7 +69,6 @@ class k_means():
 			if valor < menor:
 				menor = valor
 				posMenor = pos
-
 		return posMenor
 
 	

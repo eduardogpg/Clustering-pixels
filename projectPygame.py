@@ -9,6 +9,7 @@ from PIL import Image
 from pygame.locals import *
 from os import listdir
 from Clases import k_means
+from Clases import NearestNeighbors as NN
 
 
 def loadImage(listPath):
@@ -27,9 +28,20 @@ def listAllImage(path):
 
 def getRGBList(pixel):
 	listRGB = []
-	listRGB.append(pixel.r)
-	listRGB.append(pixel.g)
-	listRGB.append(pixel.b)
+	if pixel.r == 0:
+		listRGB.append(1)
+	else:
+		listRGB.append(pixel.r)
+
+	if pixel.g == 0:
+		listRGB.append(1)
+	else:
+		listRGB.append(pixel.g)
+
+	if pixel.b == 0:
+		listRGB.append(1)
+	else:
+		listRGB.append(pixel.b)
 	return listRGB
 
 def setMatrixOfPixels(image):
@@ -48,38 +60,16 @@ def toInteger(Matrix):
 		currentMatrix.append(IntegerList)
 	return currentMatrix
 
-def calculateDistance(listOne, listTwo):
-	distancia = 0
-	for pos in range(0, len(listOne)):
-		distancia = distancia + ((listTwo[pos] - listOne[pos])** 2)
-	return math.sqrt( distancia )
+
+def startNearestNeighbors(Matrix, listaCentroides):
+	nearestNeighbors = NN(listaCentroides, Matrix)
+	return nearestNeighbors.algoritm()
 
 
-def getLessPosition(lista):
-	posMenor = 0
-	menor = lista[posMenor]
-	for pos in range(0, len(lista)):
-		valor = lista[pos]
-		if valor < menor:
-			menor = valor
-			posMenor = pos
-	return posMenor
-
-
-def NearestNeighbors(Matrix, listaCentroides):
-	MatrixAux = []
-	for lista in Matrix:
-		listaDistancias = []
-		for centroide in listaCentroides:
-			listaDistancias.append ( calculateDistance(lista, list(centroide)) )
-		MatrixAux.append( getLessPosition(listaDistancias) )
-
-	return MatrixAux
-	
 def startAlgorithmKMeans(Matrix, numeroCentroides):
 	cluster = k_means(Matrix, numeroCentroides)
 	cluster.algorithm()
-	return makeListColors(toInteger (cluster.getMatrizRGBCentroides()))
+	return (toInteger (cluster.getMatrizRGBCentroides()))
 
 def makeListColors(RGBMatrix):
 	ColorList = []
@@ -140,13 +130,17 @@ def graphics(numeroCentroides, opcion):
 					if flagAlgorithm == False:
 						print "Comienza el algoritmo de Cluster"
 						MarizPixeles = setMatrixOfPixels(backGround)
-						ColorList = startAlgorithmKMeans( MarizPixeles ,numeroCentroides )
 						
-						if dibujar==True:
-							Matrix = NearestNeighbors( MarizPixeles, ColorList )
-						flagAlgorithm = True
-						print "Termina el algoritmo de Cluster"
+						listaClusters = startAlgorithmKMeans( MarizPixeles ,numeroCentroides )
+						ColorList = makeListColors(listaClusters)
 
+						print "Termina el algoritmo de Cluster\n\n"
+
+						if dibujar==True:
+							print "Comienza el algoritmo Nearest Neighbors"
+							Matrix = startNearestNeighbors( MarizPixeles, listaClusters )
+							print "Termina el algoritmo Nearest Neighbors\n\n"
+						flagAlgorithm = True
 						
 						
 		if flagAlgorithm==True:
@@ -160,7 +154,7 @@ def graphics(numeroCentroides, opcion):
 				
 				pygame.display.update()
 				flagAlgorithm = False
-				print "Se Termina "
+				print "Se Termina \n\n"
 			
 			else:
 				size = backGround.get_height() / len(ColorList)
@@ -176,10 +170,14 @@ def graphics(numeroCentroides, opcion):
 
 		
 
-
-
-if int(sys.argv[2]) == 1:
-	graphics( int(sys.argv[1]),  True )	
-else:
-	graphics( int(sys.argv[1]),  False )	
-
+if __name__ == "__main__":
+	
+	if len(sys.argv)==5:
+		if int(sys.argv[4]) == 1:
+			graphics( int(sys.argv[2]),  True )	
+		else:
+			graphics( int(sys.argv[2]),  False )	
+	else:
+		print "Sentencia correcta:"
+		print "python ProjectPygame.py centroides n opcion 1/2"
+		graphics( 10 ,  True )
